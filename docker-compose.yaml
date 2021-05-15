@@ -1,0 +1,33 @@
+version: "3"
+
+services:
+  contagion-updater:
+    build:
+      context: .
+    image: ct-contagion-updater:latest
+    container_name: 'contagion-updater'
+    environment:
+      - QUEUE_ADDRESS=amqp://guest:guest@codes-queue:5672/
+    ports:
+      - "5006:5006"
+    depends_on:
+      - codes-queue
+    networks:
+      - queue-network
+  
+  codes-queue:
+    image: rabbitmq:3-management-alpine
+    container_name: 'codes-queue'
+    ports:
+        - 5672:5672
+        - 15672:15672
+    volumes:
+        - ./rabbitmq/data/:/var/lib/rabbitmq/
+        - ./rabbitmq/log/:/var/log/rabbitmq
+    networks:
+        - queue-network
+
+networks:
+  queue-network:
+
+  
