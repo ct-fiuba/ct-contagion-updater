@@ -14,7 +14,8 @@ func failOnError(err error, msg string) {
 
 func main() {
 	queueAddress := os.Getenv("QUEUE_ADDRESS")
-	log.Printf("Trying to connect to the RabbitMQ codes queue, at address %s", queueAddress)
+	queueName := os.Getenv("QUEUE_NAME")
+	log.Printf("Trying to connect to the RabbitMQ queue %s, at address %s", queueName, queueAddress)
 
 	conn, err := amqp.Dial(queueAddress)
 	failOnError(err, "Failed to connect to RabbitMQ")
@@ -24,24 +25,26 @@ func main() {
 	failOnError(err, "Failed to open a channel")
 	defer ch.Close()
 
-	q, err := ch.QueueDeclare(
-		"golang-queue", // name
-		false,          // durable
-		false,          // delete when unused
-		false,          // exclusive
-		false,          // no-wait
-		nil,            // arguments
-	)
-	failOnError(err, "Failed to declare a queue")
+	// _, err = ch.QueueDeclare(
+	// 	queueName, // name
+	// 	false,     // durable
+	// 	false,     // delete when unused
+	// 	false,     // exclusive
+	// 	false,     // no-wait
+	// 	nil,       // arguments
+	// )
+	// if err != nil {
+	// 	log.Printf("WARNING: Issues found declaring queue: %s", err)
+	// }
 
 	msgs, err := ch.Consume(
-		q.Name, // queue
-		"",     // consumer
-		true,   // auto-ack
-		false,  // exclusive
-		false,  // no-local
-		false,  // no-wait
-		nil,    // args
+		queueName, // queue
+		"",        // consumer
+		true,      // auto-ack
+		false,     // exclusive
+		false,     // no-local
+		false,     // no-wait
+		nil,       // args
 	)
 	failOnError(err, "Failed to register a consumer")
 
@@ -49,7 +52,7 @@ func main() {
 
 	go func() {
 		for d := range msgs {
-			log.Printf("Received a message: %s", d.Body)
+			log.Printf(">>> Consumed a message: %s", d.Body)
 		}
 	}()
 

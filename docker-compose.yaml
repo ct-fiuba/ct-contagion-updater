@@ -8,8 +8,7 @@ services:
     container_name: 'contagion-updater'
     environment:
       - QUEUE_ADDRESS=amqp://guest:guest@codes-queue:5672/
-    ports:
-      - "5006:5006"
+      - QUEUE_NAME=infected-codes
     depends_on:
       - codes-queue
     networks:
