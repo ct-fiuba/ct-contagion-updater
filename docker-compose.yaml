@@ -9,11 +9,15 @@ services:
     environment:
       - QUEUE_ADDRESS=amqp://guest:guest@codes-queue:5672/
       - QUEUE_NAME=infected-codes
+      - MONGODB_URI=mongodb://ct-contagion-updater-db:27017/ct-contagion-updater-db
     depends_on:
       - codes-queue
     networks:
       - queue-network
-  
+
+  ct-contagion-updater-db:
+    image: mongo:3.6.4
+
   codes-queue:
     image: rabbitmq:3-management-alpine
     container_name: 'codes-queue'
