@@ -6,7 +6,8 @@ import (
 	"log"
 	"os"
 
-	"github.com/streadway/amqp"
+	"github.com/ct-fiuba/ct-contagion-updater/pkg/utils/rabbitmq"
+	"github.com/ct-fiuba/ct-contagion-updater/pkg/utils/logger"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -23,11 +24,7 @@ type Rule struct {
 	SpaceValue    string `bson:"spaceValue,omitempty"`
 }
 
-func failOnError(err error, msg string) {
-	if err != nil {
-		log.Fatalf("%s: %s", msg, err)
-	}
-}
+
 
 func main() {
 	queueAddress := os.Getenv("QUEUE_ADDRESS")
@@ -47,42 +44,13 @@ func main() {
 	database := client.Database("contact-tracing-db")
 	rulesCollection := database.Collection("rules")
 
-	log.Printf("Trying to connect to the RabbitMQ queue %s, at address %s", queueName, queueAddress)
-	conn, err := amqp.Dial(queueAddress)
-	failOnError(err, "Failed to connect to RabbitMQ")
-	defer conn.Close()
-
-	ch, err := conn.Channel()
-	failOnError(err, "Failed to open a channel")
-	defer ch.Close()
-
-	_, err = ch.QueueDeclare(
-		queueName, // name
-		true,      // durable
-		false,     // delete when unused
-		false,     // exclusive
-		false,     // no-wait
-		nil,       // arguments
-	)
-	if err != nil {
-		log.Printf("WARNING: Issues found declaring queue: %s", err)
-	}
-
-	msgs, err := ch.Consume(
-		queueName, // queue
-		"",        // consumer
-		true,      // auto-ack
-		false,     // exclusive
-		false,     // no-local
-		false,     // no-wait
-		nil,       // args
-	)
-	failOnError(err, "Failed to register a consumer")
+	consumer, err := rabbitmq.New(queueAddress, queueName)
+	logger.FailOnError(err, "Failed to register a consumer")
 
 	forever := make(chan bool)
 
 	go func() {
-		for d := range msgs {
+		for d := range consumer.delivery {
 			log.Printf(">>> Consumed a message: %s", d.Body)
 			var rules []Rule
 			cursor, err := rulesCollection.Find(ctx, bson.D{})

@@ -25,8 +25,8 @@ services:
         - 5672:5672
         - 15672:15672
     volumes:
-        - ./rabbitmq/data/:/var/lib/rabbitmq/
-        - ./rabbitmq/log/:/var/log/rabbitmq
+        - ./rabbitmq-info/data/:/var/lib/rabbitmq/
+        - ./rabbitmq-info/log/:/var/log/rabbitmq
     networks:
         - queue-network
 
