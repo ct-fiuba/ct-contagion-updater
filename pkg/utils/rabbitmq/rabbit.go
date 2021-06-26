@@ -56,3 +56,20 @@ func New(queueAddress string, queueName string) (*Consumer, error) {
 
 	return c, err
 }
+
+func (c *Consumer) Shutdown() error {
+	// will close() the deliveries channel
+	
+	if err := c.Conn.Close(); err != nil {
+		logger.FailOnError(err, "Failed to close connection")
+		return err
+	}
+
+	if err := c.Channel.Close(); err != nil {
+		logger.FailOnError(err, "Failed to close channel")
+		return err
+	}
+
+	defer log.Printf("AMQP shutdown OK")
+	return nil
+}
