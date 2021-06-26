@@ -50,7 +50,7 @@ func main() {
 	forever := make(chan bool)
 
 	go func() {
-		for d := range consumer.delivery {
+		for d := range consumer.Delivery {
 			log.Printf(">>> Consumed a message: %s", d.Body)
 			var rules []Rule
 			cursor, err := rulesCollection.Find(ctx, bson.D{})

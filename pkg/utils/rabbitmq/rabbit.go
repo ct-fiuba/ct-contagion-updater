@@ -7,31 +7,32 @@ import (
 )
 
 type Consumer struct {
-	conn    *amqp.Connection
-	channel *amqp.Channel
-	delivery <-chan amqp.Delivery
+	Conn    *amqp.Connection
+	Channel *amqp.Channel
+	Delivery <-chan amqp.Delivery
 }
 
 // Connects and consumes from rabbit queue
 func New(queueAddress string, queueName string) (*Consumer, error) {
 
 	c := &Consumer{
-		conn:    nil,
-		channel: nil,
+		Conn:    nil,
+		Channel: nil,
+		Delivery: nil,
 	}
 
 	var err error
 
-	log.Printf("Trying to connect to the RabbitMQ queue %s, at address %s", queueName, queueAddress)
-	c.conn, err = amqp.Dial(queueAddress)
-	logger.FailOnError(err, "Failed to connect to RabbitMQ")
-	//defer conn.Close()
+	log.Printf("Trying to Connect to the RabbitMQ queue %s, at address %s", queueName, queueAddress)
+	c.Conn, err = amqp.Dial(queueAddress)
+	logger.FailOnError(err, "Failed to Connect to RabbitMQ")
+	//defer Conn.Close()
 
-	c.channel, err = c.conn.Channel()
-	logger.FailOnError(err, "Failed to open a channel")
+	c.Channel, err = c.Conn.Channel()
+	logger.FailOnError(err, "Failed to open a Channel")
 	//defer ch.Close()
 
-	_, err = ch.QueueDeclare(
+	_, err = c.Channel.QueueDeclare(
 		queueName, // name
 		true,      // durable
 		false,     // delete when unused
@@ -39,11 +40,10 @@ func New(queueAddress string, queueName string) (*Consumer, error) {
 		false,     // no-wait
 		nil,       // arguments
 	)
-	if err != nil {
-		log.Printf("WARNING: Issues found declaring queue: %s", err)
-	}
 
-	c.delivery, err = c.channel.Consume(
+	logger.FailOnError(err, "WARNING: Issues found declaring queue")
+
+	c.Delivery, err = c.Channel.Consume(
 		queueName, // queue
 		"",        // consumer
 		true,      // auto-ack
