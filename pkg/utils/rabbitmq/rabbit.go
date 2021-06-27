@@ -1,23 +1,22 @@
 package rabbitmq
 
 import (
-	"log"
-	"github.com/streadway/amqp"
 	"github.com/ct-fiuba/ct-contagion-updater/pkg/utils/logger"
+	"github.com/streadway/amqp"
+	"log"
 )
 
 type Consumer struct {
-	Conn    *amqp.Connection
-	Channel *amqp.Channel
+	Conn     *amqp.Connection
+	Channel  *amqp.Channel
 	Delivery <-chan amqp.Delivery
 }
 
 // Connects and consumes from rabbit queue
 func New(queueAddress string, queueName string) (*Consumer, error) {
-
 	c := &Consumer{
-		Conn:    nil,
-		Channel: nil,
+		Conn:     nil,
+		Channel:  nil,
 		Delivery: nil,
 	}
 
@@ -59,7 +58,7 @@ func New(queueAddress string, queueName string) (*Consumer, error) {
 
 func (c *Consumer) Shutdown() error {
 	// will close() the deliveries channel
-	
+
 	if err := c.Conn.Close(); err != nil {
 		logger.FailOnError(err, "Failed to close connection")
 		return err

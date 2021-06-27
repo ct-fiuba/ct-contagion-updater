@@ -1,11 +1,13 @@
 package rules
 
 import (
-	"log"
 	"fmt"
+	"log"
+
 	"github.com/ct-fiuba/ct-contagion-updater/pkg/utils/mongodb"
-	"go.mongodb.org/mongo-driver/mongo"
+
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type Rule struct {
@@ -20,14 +22,13 @@ type Rule struct {
 
 type RulesCollection struct {
 	Collection *mongo.Collection
-	Database *mongodb.DB  
+	Database   *mongodb.DB
 }
 
 func New(db *mongodb.DB) (*RulesCollection, error) {
-
 	rules := &RulesCollection{
 		Collection: nil,
-		Database: db,
+		Database:   db,
 	}
 
 	rules.Collection = db.Database.Collection("rules")
@@ -36,7 +37,6 @@ func New(db *mongodb.DB) (*RulesCollection, error) {
 }
 
 func (rules *RulesCollection) All() ([]Rule, error) {
-
 	var documents []Rule
 	cursor, err := rules.Collection.Find(rules.Database.Context, bson.D{})
 	if err != nil {

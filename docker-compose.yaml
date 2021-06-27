@@ -9,7 +9,8 @@ services:
     environment:
       - QUEUE_ADDRESS=amqp://guest:guest@codes-queue:5672/
       - QUEUE_NAME=infected-codes
-      - MONGODB_URI=mongodb://ct-contagion-updater-db:27017/ct-contagion-updater-db/?connect=direct
+      - MONGODB_URI=mongodb://ct-contagion-updater-db:27017/ct-contagion-updater-db
+      - MONGODB_DB_NAME=ct-contagion-updater-db
     depends_on:
       - codes-queue
       - ct-contagion-updater-db

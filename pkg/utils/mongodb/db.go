@@ -2,25 +2,24 @@ package mongodb
 
 import (
 	"context"
-	"log"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"log"
 )
 
 type DB struct {
-	Client *mongo.Client
-	Database *mongo.Database  
-	Context context.Context
-	Cancel context.CancelFunc
+	Client   *mongo.Client
+	Database *mongo.Database
+	Context  context.Context
+	Cancel   context.CancelFunc
 }
 
 func New(dbUri string, dbName string) (*DB, error) {
-
 	db := &DB{
-		Client: nil,
+		Client:   nil,
 		Database: nil,
-		Context: nil,
-		Cancel: nil,
+		Context:  nil,
+		Cancel:   nil,
 	}
 
 	var err error
