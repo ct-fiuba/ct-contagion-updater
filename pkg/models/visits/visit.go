@@ -13,9 +13,9 @@ import (
 
 type Visit struct {
 	ScanCode           primitive.ObjectID `bson:"scanCode"`
-	IsExitScan         bool               `bson:"isExitScan"`
 	UserGeneratedCode  string             `bson:"userGeneratedCode"`
-	Timestamp          primitive.DateTime `bson:"timestamp"`
+	EntranceTimestamp  primitive.DateTime `bson:"entranceTimestamp"`
+	ExitTimestamp      primitive.DateTime `bson:"exitTimestamp"`
 	Vaccinated         int                `bson:"vaccinated"`
 	VaccineReceived    string             `bson:"vaccineReceived,omitempty"`
 	VaccinatedDate     primitive.DateTime `bson:"vaccinatedDate,omitempty"`
@@ -54,6 +54,5 @@ func (visits *VisitsCollection) All() ([]Visit, error) {
 		fmt.Println(err)
 		return nil, err
 	}
-	fmt.Printf("VISITS = %+v\n", documents)
 	return documents, nil
 }

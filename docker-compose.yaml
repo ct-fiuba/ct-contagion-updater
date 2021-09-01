@@ -11,6 +11,7 @@ services:
       - QUEUE_NAME=infected-codes
       - MONGODB_URI=mongodb://ct-contagion-updater-db:27017/ct-contagion-updater-db
       - MONGODB_DB_NAME=ct-contagion-updater-db
+    restart: on-failure
     depends_on:
       - codes-queue
       - ct-contagion-updater-db

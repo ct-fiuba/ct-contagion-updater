@@ -5,7 +5,7 @@ import (
 )
 
 type RuleChecker interface {
-	Execute(visit visits.Visit)
+	Execute(v1, v2 visits.Visit)
 	SetInput(ic InputConnector)
 	SetOutput(oc OutputConnector)
 	SetResultExit(rc ResultConnector)

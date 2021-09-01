@@ -1,23 +1,24 @@
 package rabbitmq
 
 import (
+	"log"
+
 	"github.com/ct-fiuba/ct-contagion-updater/pkg/utils/logger"
 	"github.com/streadway/amqp"
-	"log"
 )
 
 type Consumer struct {
-	Conn     *amqp.Connection
-	Channel  *amqp.Channel
-	Delivery <-chan amqp.Delivery
+	Conn         *amqp.Connection
+	Channel      *amqp.Channel
+	DeliveryChan <-chan amqp.Delivery
 }
 
 // Connects and consumes from rabbit queue
 func New(queueAddress string, queueName string) (*Consumer, error) {
 	c := &Consumer{
-		Conn:     nil,
-		Channel:  nil,
-		Delivery: nil,
+		Conn:         nil,
+		Channel:      nil,
+		DeliveryChan: nil,
 	}
 
 	var err error
@@ -42,7 +43,7 @@ func New(queueAddress string, queueName string) (*Consumer, error) {
 
 	logger.FailOnError(err, "WARNING: Issues found declaring queue")
 
-	c.Delivery, err = c.Channel.Consume(
+	c.DeliveryChan, err = c.Channel.Consume(
 		queueName, // queue
 		"",        // consumer
 		true,      // auto-ack

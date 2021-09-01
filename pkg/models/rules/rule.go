@@ -8,6 +8,7 @@ import (
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type Rule struct {
@@ -38,7 +39,9 @@ func New(db *mongodb.DB) (*RulesCollection, error) {
 
 func (rules *RulesCollection) All() ([]Rule, error) {
 	var documents []Rule
-	cursor, err := rules.Collection.Find(rules.Database.Context, bson.D{})
+
+	findOptions := options.Find().SetSort(bson.D{{"index", 1}})
+	cursor, err := rules.Collection.Find(rules.Database.Context, bson.D{}, findOptions)
 	if err != nil {
 		log.Printf("Error finding")
 		fmt.Println(err)

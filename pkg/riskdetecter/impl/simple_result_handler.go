@@ -1,6 +1,8 @@
 package impl
 
 import (
+	"log"
+
 	"github.com/ct-fiuba/ct-contagion-updater/pkg/riskdetecter/api"
 	// "github.com/ct-fiuba/ct-contagion-updater/pkg/utils/logger"
 	// "github.com/ct-fiuba/ct-contagion-updater/pkg/utils/mongodb"
@@ -9,14 +11,14 @@ import (
 type SimpleResultHandler struct {
 }
 
-func NewSimpleResultHandler() api.ResultHandler {
+func NewSimpleResultHandler() *SimpleResultHandler {
 	self := new(SimpleResultHandler)
 
 	return self
 }
 
 func (self *SimpleResultHandler) Handle(r api.Result) {
-	// NOOP
+	log.Printf("Llegó el resultado! ==> %v \n", r)
 }
 
 func (self *SimpleResultHandler) Push(r api.Result) bool {
@@ -25,6 +27,7 @@ func (self *SimpleResultHandler) Push(r api.Result) bool {
 }
 
 // -- CASTERS
-func (self *SimpleResultHandler) asResultConnector() api.ResultConnector {
+
+func (self *SimpleResultHandler) AsResultConnector() api.ResultConnector {
 	return self
 }

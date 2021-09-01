@@ -3,9 +3,9 @@ package api
 type ContactSeverity = string
 
 const (
-	HighRisk   ContactSeverity = "HIGH"
-	MediumRisk ContactSeverity = "MEDIUM"
-	LowRisk    ContactSeverity = "LOW"
+	HighRisk   ContactSeverity = "High"
+	MediumRisk ContactSeverity = "Medium"
+	LowRisk    ContactSeverity = "Low"
 )
 
 type Result struct {

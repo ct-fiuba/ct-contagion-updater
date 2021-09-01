@@ -9,7 +9,7 @@ type InputConnector interface {
 }
 
 type OutputConnector interface {
-	Push(v visits.Visit) bool
+	Push(v1, v2 visits.Visit) bool
 }
 
 type ResultConnector interface {
