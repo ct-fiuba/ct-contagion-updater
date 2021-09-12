@@ -1,17 +1,11 @@
 package impl
 
 import (
-	"fmt"
-	"time"
-
-	"github.com/ct-fiuba/ct-contagion-updater/pkg/models/contagions"
+	"github.com/ct-fiuba/ct-contagion-updater/pkg/models/compromisedCodes"
 	"github.com/ct-fiuba/ct-contagion-updater/pkg/models/rules"
 	"github.com/ct-fiuba/ct-contagion-updater/pkg/models/spaces"
 	"github.com/ct-fiuba/ct-contagion-updater/pkg/models/visits"
 	"github.com/ct-fiuba/ct-contagion-updater/pkg/riskdetecter/api"
-	"github.com/ct-fiuba/ct-contagion-updater/pkg/utils/logger"
-
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type FilterSlot struct {
@@ -22,81 +16,70 @@ type FilterSlot struct {
 type SimpleRuleChain struct {
 	filters       []FilterSlot
 	resultHandler *SimpleResultHandler
-	visitsColl    *visits.VisitsCollection
-	spacesColl    *spaces.SpacesCollection
 }
 
-func NewSimpleRuleChain(visitsColl *visits.VisitsCollection, spacesColl *spaces.SpacesCollection) api.RuleChain {
-	self := new(SimpleRuleChain)
-	self.resultHandler = NewSimpleResultHandler()
-	self.visitsColl = visitsColl
-	self.spacesColl = spacesColl
+func NewSimpleRuleChain(compromisedCodesCollection *compromisedCodes.CompromisedCodesCollection) api.RuleChain {
+	rulechain := new(SimpleRuleChain)
+	rulechain.resultHandler = NewSimpleResultHandler(compromisedCodesCollection)
 
-	return self
+	return rulechain
 }
 
-func (self *SimpleRuleChain) AddFilter(id string, rule rules.Rule) bool {
+func (rulechain *SimpleRuleChain) AddFilter(id string, rule rules.Rule) bool {
 	filter := NewSimpleRuleChecker(rule)
-	if len(self.filters) > 0 {
-		lastFilter := self.filters[len(self.filters)-1]
-		lastFilter.checker.SetOutput(filter.AsOutputConnector())
+	if len(rulechain.filters) > 0 {
+		lastFilter := rulechain.filters[len(rulechain.filters)-1]
+		lastFilter.checker.SetNext(filter)
 	}
 
-	fs := FilterSlot{id: id, checker: filter.AsRuleChecker()}
-	self.filters = append(self.filters, fs)
+	fs := FilterSlot{id: id, checker: filter}
+	rulechain.filters = append(rulechain.filters, fs)
 
-	rc := self.resultHandler.AsResultConnector()
+	rc := rulechain.resultHandler.AsResultConnector()
 	filter.SetResultExit(rc)
 	return true
 }
 
-func (self *SimpleRuleChain) RemoveFilter(id string) bool {
-	return false
+func (rulechain *SimpleRuleChain) RemoveFilter(id string) bool {
+	return false // TODO
 }
 
-func (self *SimpleRuleChain) Process(contagion contagions.Contagion) error {
-	someTime := time.Now()
-	someDuration, _ := time.ParseDuration("10m")
-	someDuration2, _ := time.ParseDuration("20m")
+func (rulechain *SimpleRuleChain) Process(v1, v2 *visits.Visit, s *spaces.Space) error {
+	// someTime := time.Now()
+	// someDuration, _ := time.ParseDuration("10m")
+	// someDuration2, _ := time.ParseDuration("20m")
 
-	allVisits, err := self.visitsColl.All()
-	logger.FailOnError(err, "Failed retrieving visits!")
-	fmt.Printf("VISITS = %v \n", allVisits)
+	// infectedVisit := visits.Visit{
+	// 	ScanCode:          primitive.NewObjectID(),
+	// 	UserGeneratedCode: "Hola",
+	// 	EntranceTimestamp: primitive.NewDateTimeFromTime(someTime),
+	// 	Vaccinated:        0,
+	// 	CovidRecovered:    false,
+	// }
 
-	space, err := self.spacesColl.Find(contagion.SpaceId)
-	logger.FailOnError(err, "Failed retrieving space!")
-	fmt.Printf("SPACE = %+v \n", space)
+	// relatedVisits := []visits.Visit{
+	// 	{
+	// 		ScanCode:          primitive.NewObjectID(),
+	// 		UserGeneratedCode: "Hola11",
+	// 		EntranceTimestamp: primitive.NewDateTimeFromTime(someTime.Add(-someDuration)),
+	// 		Vaccinated:        0,
+	// 		CovidRecovered:    false,
+	// 	},
+	// 	{
+	// 		ScanCode:          primitive.NewObjectID(),
+	// 		UserGeneratedCode: "Hola22",
+	// 		EntranceTimestamp: primitive.NewDateTimeFromTime(someTime.Add(-someDuration2)),
+	// 		Vaccinated:        0,
+	// 		CovidRecovered:    false,
+	// 	},
+	// }
+	// for _, v := range relatedVisits {
+	// 	initialFilter := rulechain.filters[0].checker
+	// 	fmt.Printf("AAAAAAAAAA, %+v \n", initialFilter)
+	// 	initialFilter.Execute(infectedVisit, v)
+	// }
 
-	infectedVisit := visits.Visit{
-		ScanCode:          primitive.NewObjectID(),
-		UserGeneratedCode: "Hola",
-		EntranceTimestamp: primitive.NewDateTimeFromTime(someTime),
-		Vaccinated:        0,
-		CovidRecovered:    false,
-	}
-
-	relatedVisits := []visits.Visit{
-		{
-			ScanCode:          primitive.NewObjectID(),
-			UserGeneratedCode: "Hola11",
-			EntranceTimestamp: primitive.NewDateTimeFromTime(someTime.Add(-someDuration)),
-			Vaccinated:        0,
-			CovidRecovered:    false,
-		},
-		{
-			ScanCode:          primitive.NewObjectID(),
-			UserGeneratedCode: "Hola22",
-			EntranceTimestamp: primitive.NewDateTimeFromTime(someTime.Add(-someDuration2)),
-			Vaccinated:        0,
-			CovidRecovered:    false,
-		},
-	}
-
-	for _, v := range relatedVisits {
-		initialFilter := self.filters[0].checker
-		fmt.Printf("AAAAAAAAAA, %+v \n", initialFilter)
-		initialFilter.Execute(infectedVisit, v)
-	}
-
-	return nil
+	initialFilter := rulechain.filters[0].checker
+	err := initialFilter.Process(v1, v2, s)
+	return err
 }

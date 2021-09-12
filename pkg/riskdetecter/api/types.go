@@ -1,14 +1,22 @@
 package api
 
-type ContactSeverity = string
+import "github.com/ct-fiuba/ct-contagion-updater/pkg/models/compromisedCodes"
+
+type ContactSeverity = int
 
 const (
-	HighRisk   ContactSeverity = "High"
-	MediumRisk ContactSeverity = "Medium"
-	LowRisk    ContactSeverity = "Low"
+	HighRisk   ContactSeverity = 0
+	MediumRisk ContactSeverity = 1
+	LowRisk    ContactSeverity = 2
 )
 
+var RiskStringsToSeverity map[string]ContactSeverity = map[string]ContactSeverity{
+	"Alto":  HighRisk,
+	"Medio": MediumRisk,
+	"Bajo":  LowRisk,
+}
+
 type Result struct {
-	Severity ContactSeverity
-	Error    error
+	CompromisedCode compromisedCodes.CompromisedCode
+	Error           error
 }

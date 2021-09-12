@@ -41,13 +41,20 @@ func New(db *mongodb.DB) (*SpacesCollection, error) {
 func (spaces *SpacesCollection) Find(id string) (*Space, error) {
 	var space Space
 
-	err := spaces.Collection.FindOne(
+	objectId, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		log.Printf("Error while parsing space's ID (%s)", id)
+		fmt.Println(err)
+		return nil, err
+	}
+
+	err = spaces.Collection.FindOne(
 		spaces.Database.Context,
-		bson.D{{"_id", id}},
+		bson.D{{"_id", objectId}},
 	).Decode(&space)
 
 	if err != nil {
-		log.Printf("Error getting a Space with ID %s", id)
+		log.Printf("Error getting a Space with ID=%s", id)
 		fmt.Println(err)
 		return nil, err
 	}

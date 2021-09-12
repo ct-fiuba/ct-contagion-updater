@@ -56,3 +56,49 @@ func (visits *VisitsCollection) All() ([]Visit, error) {
 	}
 	return documents, nil
 }
+
+func (visits *VisitsCollection) FindInSpace(spaceId string) ([]Visit, error) {
+	var documents []Visit
+
+	objectId, err := primitive.ObjectIDFromHex(spaceId)
+	if err != nil {
+		log.Printf("Error while parsing space's ID (%s)", spaceId)
+		fmt.Println(err)
+		return nil, err
+	}
+
+	cursor, err := visits.Collection.Find(
+		visits.Database.Context,
+		bson.D{{"scanCode", objectId}},
+	)
+	if err != nil {
+		log.Printf("Error finding")
+		fmt.Println(err)
+		return nil, err
+	}
+
+	err = cursor.All(visits.Database.Context, &documents)
+	if err != nil {
+		log.Printf("Error in All")
+		fmt.Println(err)
+		return nil, err
+	}
+	return documents, nil
+}
+
+func (visits *VisitsCollection) FindByGeneratedCode(userGeneratedCode string) (*Visit, error) {
+	var visit Visit
+
+	err := visits.Collection.FindOne(
+		visits.Database.Context,
+		bson.D{{"userGeneratedCode", userGeneratedCode}},
+	).Decode(&visit)
+
+	if err != nil {
+		log.Printf("Error getting a Visit with userGeneratedCode=%s", userGeneratedCode)
+		fmt.Println(err)
+		return nil, err
+	}
+
+	return &visit, nil
+}

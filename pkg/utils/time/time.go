@@ -25,3 +25,7 @@ func Earliest(t1, t2 time.Time) time.Time {
 	}
 	return t1
 }
+
+func IntervalsOverlap(t1_start, t1_end, t2_start, t2_end time.Time) bool {
+	return !(t1_start.After(t2_end) || t2_start.After(t1_end))
+}

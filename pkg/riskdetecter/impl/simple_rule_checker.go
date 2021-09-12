@@ -2,85 +2,96 @@ package impl
 
 import (
 	"fmt"
+	"time"
 
+	"github.com/ct-fiuba/ct-contagion-updater/pkg/models/compromisedCodes"
 	"github.com/ct-fiuba/ct-contagion-updater/pkg/models/rules"
+	"github.com/ct-fiuba/ct-contagion-updater/pkg/models/spaces"
 	"github.com/ct-fiuba/ct-contagion-updater/pkg/models/visits"
 	"github.com/ct-fiuba/ct-contagion-updater/pkg/riskdetecter/api"
 	timeutils "github.com/ct-fiuba/ct-contagion-updater/pkg/utils/time"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type SimpleRuleChecker struct {
 	rule       rules.Rule
-	next       api.OutputConnector
+	next       api.RuleChecker
 	resultExit api.ResultConnector
 }
 
-func NewSimpleRuleChecker(r rules.Rule) *SimpleRuleChecker {
-	self := new(SimpleRuleChecker)
-	self.rule = r
-	self.next = nil
-	self.resultExit = nil
+func NewSimpleRuleChecker(r rules.Rule) api.RuleChecker {
+	checker := new(SimpleRuleChecker)
+	checker.rule = r
+	checker.next = nil
+	checker.resultExit = nil
 
-	return self
+	return checker
 }
 
-func (self *SimpleRuleChecker) SetInput(ic api.InputConnector) {
-	// NOOP
+func (checker *SimpleRuleChecker) SetNext(rc api.RuleChecker) {
+	checker.next = rc
 }
 
-func (self *SimpleRuleChecker) SetOutput(oc api.OutputConnector) {
-	self.next = oc
+func (checker *SimpleRuleChecker) SetResultExit(rc api.ResultConnector) {
+	checker.resultExit = rc
 }
 
-func (self *SimpleRuleChecker) SetResultExit(rc api.ResultConnector) {
-	self.resultExit = rc
-}
-
-func (self *SimpleRuleChecker) Execute(v1, v2 visits.Visit) {
-	fmt.Println("Se proceso la visita")
-
+func (checker *SimpleRuleChecker) Process(compromised, infected *visits.Visit, s *spaces.Space) error {
 	durationCheck := true
+	m2Check := true
+	spaceCheck := true
 
-	v1EntranceTime := v1.EntranceTimestamp.Time()
-	v2EntranceTime := v2.EntranceTimestamp.Time()
-	// v1ExitTime := v1.ExitTimestamp.Time()
-	// v2ExitTime := v2.ExitTimestamp.Time()
+	compromisedEntranceTime := compromised.EntranceTimestamp.Time()
+	infectedEntranceTime := infected.EntranceTimestamp.Time()
+	// TODO: overload with real exit time, if it exists
+	compromisedExitTime := compromisedEntranceTime.Add(time.Minute * time.Duration(s.EstimatedVisitDuration))
+	infectedExitTime := infectedEntranceTime.Add(time.Minute * time.Duration(s.EstimatedVisitDuration))
 
-	// Cannot get space info right now, should be part of the processed visit
-	// space := v1.Space
+	fmt.Printf("[Rule #%d] Compromised time interval = [ %s ; %s ] \n", checker.rule.Index, compromisedEntranceTime.String(), compromisedExitTime.String())
+	fmt.Printf("[Rule #%d] Infected time interval = [ %s ; %s ] \n", checker.rule.Index, infectedEntranceTime.String(), infectedExitTime.String())
 
-	if self.rule.DurationCmp == "" {
-		sharedTime := timeutils.AbsDateDiffInMinutes(v1EntranceTime, v2EntranceTime)
-		if self.rule.DurationCmp == "<" {
-			durationCheck = int(sharedTime) <= self.rule.DurationValue
+	if checker.rule.DurationValue != 0 || !timeutils.IntervalsOverlap(compromisedEntranceTime, compromisedExitTime, infectedEntranceTime, infectedExitTime) {
+		startSharedTime := timeutils.Latest(compromisedEntranceTime, infectedEntranceTime)
+		endSharedTime := timeutils.Earliest(compromisedExitTime, infectedExitTime)
+		sharedTime := timeutils.AbsDateDiffInMinutes(startSharedTime, endSharedTime)
+		fmt.Printf("[Rule #%d] SHARED TIME INTERVAL = [ %s ; %s ] \n", checker.rule.Index, startSharedTime.String(), endSharedTime.String())
+		fmt.Printf("[Rule #%d] SHARED TIME BETWEEN VISITS = %f\n", checker.rule.Index, sharedTime)
+		if checker.rule.DurationCmp == "<" {
+			durationCheck = int(sharedTime) <= checker.rule.DurationValue
 		} else {
-			durationCheck = int(sharedTime) >= self.rule.DurationValue
+			durationCheck = int(sharedTime) >= checker.rule.DurationValue
 		}
 	}
 
-	if durationCheck {
-		if self.resultExit != nil {
-			res := api.Result{Severity: self.rule.ContagionRisk, Error: nil}
-			self.resultExit.Push(res)
+	if checker.rule.M2Value != 0 {
+		if checker.rule.M2Cmp == "<" {
+			m2Check = s.M2 <= checker.rule.M2Value
+		} else {
+			m2Check = s.M2 >= checker.rule.M2Value
+		}
+	}
+
+	// if checker.rule.SpaceValue {
+	// 	spaceCheck = s.OpenPlace === rule.spaceValue;
+	// }
+
+	if durationCheck && m2Check && spaceCheck {
+		fmt.Printf("[Rule #%d] Match found. Should push result to... %+v\n", checker.rule.Index, checker.resultExit)
+		if checker.resultExit != nil {
+			res := api.Result{CompromisedCode: compromisedCodes.CompromisedCode{
+				ScanCode:          compromised.ScanCode,
+				UserGeneratedCode: compromised.UserGeneratedCode,
+				DateDetected:      primitive.NewDateTimeFromTime(time.Now()),
+				Risk:              api.RiskStringsToSeverity[checker.rule.ContagionRisk],
+			}, Error: nil}
+			fmt.Printf("[Rule #%d] Match found. Pushing Result --> %+v\n", checker.rule.Index, res)
+			checker.resultExit.Push(res)
 		}
 	} else {
-		if self.next != nil {
-			self.next.Push(v1, v2)
+		if checker.next != nil {
+			checker.next.Process(compromised, infected, s)
 		}
 	}
-}
 
-func (self *SimpleRuleChecker) Push(v1, v2 visits.Visit) bool {
-	self.Execute(v1, v2)
-	return true
-}
-
-// -- CASTERS
-
-func (self *SimpleRuleChecker) AsRuleChecker() api.RuleChecker {
-	return self
-}
-
-func (self *SimpleRuleChecker) AsOutputConnector() api.OutputConnector {
-	return self
+	return nil
 }

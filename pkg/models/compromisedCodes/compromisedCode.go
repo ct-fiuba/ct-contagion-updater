@@ -1,4 +1,4 @@
-package visits
+package compromisedCodes
 
 import (
 	"fmt"
