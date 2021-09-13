@@ -5,9 +5,6 @@ import (
 
 	"github.com/ct-fiuba/ct-contagion-updater/pkg/models/compromisedCodes"
 	"github.com/ct-fiuba/ct-contagion-updater/pkg/riskdetecter/api"
-	// "github.com/ct-fiuba/ct-contagion-updater/pkg/models/compromisedCodes"
-	// "github.com/ct-fiuba/ct-contagion-updater/pkg/utils/logger"
-	// "github.com/ct-fiuba/ct-contagion-updater/pkg/utils/mongodb"
 )
 
 type SimpleResultHandler struct {

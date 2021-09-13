@@ -40,9 +40,16 @@ func (checker *SimpleRuleChecker) Process(compromised, infected *visits.Visit, s
 	durationCheck := true
 	m2Check := true
 	spaceCheck := true
+	n95MandatoryCheck := true
+	vaccinatedCheck := true
+	vaccineReceivedCheck := true
+	vaccinatedDaysCheck := true
+	covidRecoveredCheck := true
+	covidRecoveredDaysCheck := true
 
 	compromisedEntranceTime := compromised.EntranceTimestamp.Time()
 	infectedEntranceTime := infected.EntranceTimestamp.Time()
+
 	// TODO: overload with real exit time, if it exists
 	compromisedExitTime := compromisedEntranceTime.Add(time.Minute * time.Duration(s.EstimatedVisitDuration))
 	infectedExitTime := infectedEntranceTime.Add(time.Minute * time.Duration(s.EstimatedVisitDuration))
@@ -71,11 +78,39 @@ func (checker *SimpleRuleChecker) Process(compromised, infected *visits.Visit, s
 		}
 	}
 
-	// if checker.rule.SpaceValue {
-	// 	spaceCheck = s.OpenPlace === rule.spaceValue;
+	// TODO: Different types, how to compare?
+	// if checker.rule.SpaceValue != "" {
+	// 	spaceCheck = s.OpenPlace == checker.rule.SpaceValue;
 	// }
 
-	if durationCheck && m2Check && spaceCheck {
+	if checker.rule.N95Mandatory {
+		n95MandatoryCheck = s.N95Mandatory == checker.rule.N95Mandatory
+	}
+
+	if checker.rule.Vaccinated != 0 {
+		vaccinatedCheck = compromised.Vaccinated == checker.rule.Vaccinated
+	}
+
+	if checker.rule.VaccineReceived != "" {
+		vaccineReceivedCheck = compromised.VaccineReceived == checker.rule.VaccineReceived
+	}
+
+	if checker.rule.VaccinatedDaysAgoMin != 0 {
+		vaccineDate := compromised.VaccinatedDate.Time()
+		vaccinatedDaysCheck = int(time.Since(vaccineDate).Hours())/24 >= checker.rule.VaccinatedDaysAgoMin
+	}
+
+	if checker.rule.CovidRecovered {
+		covidRecoveredCheck = compromised.CovidRecovered == checker.rule.CovidRecovered
+	}
+
+	if checker.rule.CovidRecoveredDaysAgoMax != 0 {
+		recoveredDate := compromised.CovidRecoveredDate.Time()
+		covidRecoveredDaysCheck = int(time.Since(recoveredDate).Hours())/24 <= checker.rule.CovidRecoveredDaysAgoMax
+	}
+
+	if durationCheck && m2Check && spaceCheck && n95MandatoryCheck && vaccinatedCheck &&
+		vaccineReceivedCheck && vaccinatedDaysCheck && covidRecoveredCheck && covidRecoveredDaysCheck {
 		fmt.Printf("[Rule #%d] Match found. Should push result to... %+v\n", checker.rule.Index, checker.resultExit)
 		if checker.resultExit != nil {
 			res := api.Result{CompromisedCode: compromisedCodes.CompromisedCode{

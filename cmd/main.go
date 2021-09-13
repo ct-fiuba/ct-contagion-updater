@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"os"
 
@@ -13,6 +12,8 @@ import (
 	"github.com/ct-fiuba/ct-contagion-updater/pkg/utils/logger"
 	"github.com/ct-fiuba/ct-contagion-updater/pkg/utils/mongodb"
 	"github.com/ct-fiuba/ct-contagion-updater/pkg/utils/rabbitmq"
+
+	cron "github.com/robfig/cron/v3"
 )
 
 func main() {
@@ -32,16 +33,23 @@ func main() {
 	visitsCollection, err := visits.New(db)
 	logger.FailOnError(err, "Failed to create/get visits collection")
 	visits, err := visitsCollection.All()
-	fmt.Printf("### VISITS: \n%+v\n", visits)
+	log.Printf("### VISITS: \n%+v\n", visits)
 
 	infectedManager := controllers.NewInfectedManager(db)
+	codesBySpace := concurrency.NewSafeStringListMap()
 
 	forever := make(chan bool)
 
+	c := cron.New()
+	c.AddFunc("@every 20s", func() { // Every 20 seconds, starting now
+		log.Printf("[MAIN] Starting batch processing\n")
+		infectedManager.ProcessBatch(codesBySpace)
+	})
+	c.Start()
+
 	go func() {
-		codesBySpace := concurrency.NewSafeStringListMap()
 		for d := range consumer.DeliveryChan {
-			fmt.Printf(">>> Consumed a message: %s\n", d.Body)
+			log.Printf("[MAIN] Consumed a message: %s\n", d.Body)
 
 			var contagion contagions.Contagion
 			err := json.Unmarshal(d.Body, &contagion)
@@ -51,9 +59,8 @@ func main() {
 					log.Printf("syntax error at byte offset %d", e.Offset)
 				}
 			} else {
-				fmt.Printf(">>>>>> To struct: %+v\n", contagion)
+				log.Printf("[MAIN] >>> To struct: %+v\n", contagion)
 				codesBySpace.Add(contagion.SpaceId, contagion.UserGeneratedCode)
-				infectedManager.ProcessBatch(codesBySpace)
 			}
 		}
 	}()
