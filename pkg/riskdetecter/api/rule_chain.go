@@ -9,5 +9,5 @@ import (
 type RuleChain interface {
 	AddFilter(id string, rule rules.Rule) bool
 	RemoveFilter(id string) bool
-	Process(v1, v2 *visits.Visit, s *spaces.Space) error
+	Process(v1, infected *visits.Visit, s *spaces.Space) error
 }

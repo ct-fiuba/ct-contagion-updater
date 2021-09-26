@@ -25,6 +25,11 @@ func NewInfectedManager(db *mongodb.DB) *InfectedManager {
 }
 
 func (self *InfectedManager) ProcessBatch(codesBySpace *concurrency.SafeStringListMap) error {
+	if codesBySpace.Count() == 0 {
+		fmt.Printf("[DEBUG] Empty batch. Skipping processing\n")
+		return nil
+	}
+
 	rulesCollection, err := rules.New(self.db)
 	logger.FailOnError(err, "Failed to create/get rules collection")
 	visitsCollection, err := visits.New(self.db)
@@ -34,7 +39,6 @@ func (self *InfectedManager) ProcessBatch(codesBySpace *concurrency.SafeStringLi
 	compromisedCodesCollection, err := compromisedCodes.New(self.db)
 	logger.FailOnError(err, "Failed to create/get spaces collection")
 
-	fmt.Printf("[DEBUG] Getting rules\n")
 	rules, err := rulesCollection.All()
 	fmt.Printf("[DEBUG] Rules list: %+v\n", rules)
 	ruleChain := rd_impl.NewSimpleRuleChain(compromisedCodesCollection)
@@ -54,12 +58,6 @@ func (self *InfectedManager) ProcessBatch(codesBySpace *concurrency.SafeStringLi
 		}
 		fmt.Printf("[DEBUG] Visits collected = %d\n", len(visits))
 
-		// space, err := spacesCollection.Find(spaceId)
-		// if err != nil {
-		// 	fmt.Printf("[ERROR] Failure when retrieving space %s \n", spaceId)
-		// 	continue
-		// }
-
 		for _, contagionCode := range codes {
 			contagionVisit, err := visitsCollection.FindByGeneratedCode(contagionCode)
 			if err != nil {
@@ -74,6 +72,7 @@ func (self *InfectedManager) ProcessBatch(codesBySpace *concurrency.SafeStringLi
 			}
 
 			for _, v := range visits {
+				// TODO: Try to avoid processing already infected visits
 				if v.UserGeneratedCode == contagionVisit.UserGeneratedCode {
 					continue
 				}

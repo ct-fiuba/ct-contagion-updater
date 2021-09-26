@@ -7,7 +7,6 @@ import (
 
 	"github.com/ct-fiuba/ct-contagion-updater/pkg/controllers"
 	"github.com/ct-fiuba/ct-contagion-updater/pkg/models/contagions"
-	"github.com/ct-fiuba/ct-contagion-updater/pkg/models/visits"
 	"github.com/ct-fiuba/ct-contagion-updater/pkg/utils/concurrency"
 	"github.com/ct-fiuba/ct-contagion-updater/pkg/utils/logger"
 	"github.com/ct-fiuba/ct-contagion-updater/pkg/utils/mongodb"
@@ -16,11 +15,18 @@ import (
 	cron "github.com/robfig/cron/v3"
 )
 
+const DEFAULT_SCHEDULE_PERIOD = "@every 20s"
+
 func main() {
 	queueAddress := os.Getenv("QUEUE_ADDRESS")
 	queueName := os.Getenv("QUEUE_NAME")
 	dbUri := os.Getenv("MONGODB_URI")
 	dbName := os.Getenv("MONGODB_DB_NAME")
+
+	schedulePeriod := os.Getenv("TRIGGER_SCHEDULE_PERIOD")
+	if schedulePeriod == "" {
+		schedulePeriod = DEFAULT_SCHEDULE_PERIOD
+	}
 
 	db, err := mongodb.New(dbUri, dbName)
 	logger.FailOnError(err, "Failed to connect to the DB")
@@ -30,18 +36,13 @@ func main() {
 	logger.FailOnError(err, "Failed to register a consumer")
 	defer consumer.Shutdown()
 
-	visitsCollection, err := visits.New(db)
-	logger.FailOnError(err, "Failed to create/get visits collection")
-	visits, err := visitsCollection.All()
-	log.Printf("### VISITS: \n%+v\n", visits)
-
 	infectedManager := controllers.NewInfectedManager(db)
 	codesBySpace := concurrency.NewSafeStringListMap()
 
 	forever := make(chan bool)
 
 	c := cron.New()
-	c.AddFunc("@every 20s", func() { // Every 20 seconds, starting now
+	c.AddFunc(schedulePeriod, func() {
 		log.Printf("[MAIN] Starting batch processing\n")
 		infectedManager.ProcessBatch(codesBySpace)
 	})

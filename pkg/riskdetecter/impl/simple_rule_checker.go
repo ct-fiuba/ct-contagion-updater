@@ -61,8 +61,6 @@ func (checker *SimpleRuleChecker) Process(compromised, infected *visits.Visit, s
 		startSharedTime := timeutils.Latest(compromisedEntranceTime, infectedEntranceTime)
 		endSharedTime := timeutils.Earliest(compromisedExitTime, infectedExitTime)
 		sharedTime := timeutils.AbsDateDiffInMinutes(startSharedTime, endSharedTime)
-		fmt.Printf("[Rule #%d] SHARED TIME INTERVAL = [ %s ; %s ] \n", checker.rule.Index, startSharedTime.String(), endSharedTime.String())
-		fmt.Printf("[Rule #%d] SHARED TIME BETWEEN VISITS = %f\n", checker.rule.Index, sharedTime)
 		if checker.rule.DurationCmp == "<" {
 			durationCheck = int(sharedTime) <= checker.rule.DurationValue
 		} else {
@@ -109,9 +107,10 @@ func (checker *SimpleRuleChecker) Process(compromised, infected *visits.Visit, s
 		covidRecoveredDaysCheck = int(time.Since(recoveredDate).Hours())/24 <= checker.rule.CovidRecoveredDaysAgoMax
 	}
 
+	// -- Decision
 	if durationCheck && m2Check && spaceCheck && n95MandatoryCheck && vaccinatedCheck &&
 		vaccineReceivedCheck && vaccinatedDaysCheck && covidRecoveredCheck && covidRecoveredDaysCheck {
-		fmt.Printf("[Rule #%d] Match found. Should push result to... %+v\n", checker.rule.Index, checker.resultExit)
+		fmt.Printf("[Rule #%d] Match found between visits %d and %d\n", checker.rule.Index, compromised.UserGeneratedCode, infected.UserGeneratedCode)
 		if checker.resultExit != nil {
 			res := api.Result{CompromisedCode: compromisedCodes.CompromisedCode{
 				ScanCode:          compromised.ScanCode,
@@ -119,7 +118,6 @@ func (checker *SimpleRuleChecker) Process(compromised, infected *visits.Visit, s
 				DateDetected:      primitive.NewDateTimeFromTime(time.Now()),
 				Risk:              api.RiskStringsToSeverity[checker.rule.ContagionRisk],
 			}, Error: nil}
-			fmt.Printf("[Rule #%d] Match found. Pushing Result --> %+v\n", checker.rule.Index, res)
 			checker.resultExit.Push(res)
 		}
 	} else {

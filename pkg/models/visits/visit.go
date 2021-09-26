@@ -3,12 +3,17 @@ package visits
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/ct-fiuba/ct-contagion-updater/pkg/utils/mongodb"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+)
+
+const (
+	TIME_WINDOW_DAYS = 21
 )
 
 type Visit struct {
@@ -69,7 +74,10 @@ func (visits *VisitsCollection) FindInSpace(spaceId string) ([]Visit, error) {
 
 	cursor, err := visits.Collection.Find(
 		visits.Database.Context,
-		bson.D{{"scanCode", objectId}},
+		bson.M{
+			"scanCode":          objectId,
+			"entranceTimestamp": bson.M{"$gte": primitive.NewDateTimeFromTime(time.Now().AddDate(0, 0, -TIME_WINDOW_DAYS))},
+		},
 	)
 	if err != nil {
 		log.Printf("Error finding")

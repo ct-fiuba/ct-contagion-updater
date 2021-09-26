@@ -44,42 +44,8 @@ func (rulechain *SimpleRuleChain) RemoveFilter(id string) bool {
 	return false // TODO
 }
 
-func (rulechain *SimpleRuleChain) Process(v1, v2 *visits.Visit, s *spaces.Space) error {
-	// someTime := time.Now()
-	// someDuration, _ := time.ParseDuration("10m")
-	// someDuration2, _ := time.ParseDuration("20m")
-
-	// infectedVisit := visits.Visit{
-	// 	ScanCode:          primitive.NewObjectID(),
-	// 	UserGeneratedCode: "Hola",
-	// 	EntranceTimestamp: primitive.NewDateTimeFromTime(someTime),
-	// 	Vaccinated:        0,
-	// 	CovidRecovered:    false,
-	// }
-
-	// relatedVisits := []visits.Visit{
-	// 	{
-	// 		ScanCode:          primitive.NewObjectID(),
-	// 		UserGeneratedCode: "Hola11",
-	// 		EntranceTimestamp: primitive.NewDateTimeFromTime(someTime.Add(-someDuration)),
-	// 		Vaccinated:        0,
-	// 		CovidRecovered:    false,
-	// 	},
-	// 	{
-	// 		ScanCode:          primitive.NewObjectID(),
-	// 		UserGeneratedCode: "Hola22",
-	// 		EntranceTimestamp: primitive.NewDateTimeFromTime(someTime.Add(-someDuration2)),
-	// 		Vaccinated:        0,
-	// 		CovidRecovered:    false,
-	// 	},
-	// }
-	// for _, v := range relatedVisits {
-	// 	initialFilter := rulechain.filters[0].checker
-	// 	fmt.Printf("AAAAAAAAAA, %+v \n", initialFilter)
-	// 	initialFilter.Execute(infectedVisit, v)
-	// }
-
+func (rulechain *SimpleRuleChain) Process(compromised, infected *visits.Visit, s *spaces.Space) error {
 	initialFilter := rulechain.filters[0].checker
-	err := initialFilter.Process(v1, v2, s)
+	err := initialFilter.Process(compromised, infected, s)
 	return err
 }
