@@ -7,7 +7,7 @@ import (
 	"github.com/ct-fiuba/ct-contagion-updater/pkg/models/rules"
 	"github.com/ct-fiuba/ct-contagion-updater/pkg/models/spaces"
 	"github.com/ct-fiuba/ct-contagion-updater/pkg/models/visits"
-	// rd_api "github.com/ct-fiuba/ct-contagion-updater/pkg/riskdetecter/api"
+	rd_api "github.com/ct-fiuba/ct-contagion-updater/pkg/riskdetecter/api"
 	rd_impl "github.com/ct-fiuba/ct-contagion-updater/pkg/riskdetecter/impl"
 	"github.com/ct-fiuba/ct-contagion-updater/pkg/utils/concurrency"
 	"github.com/ct-fiuba/ct-contagion-updater/pkg/utils/logger"
@@ -41,7 +41,8 @@ func (self *InfectedManager) ProcessBatch(codesBySpace *concurrency.SafeStringLi
 
 	rules, err := rulesCollection.All()
 	fmt.Printf("[DEBUG] Rules list: %+v\n", rules)
-	ruleChain := rd_impl.NewSimpleRuleChain(compromisedCodesCollection)
+
+	var ruleChain rd_api.RuleChain = rd_impl.NewSimpleRuleChain(compromisedCodesCollection)
 	for i, rule := range rules {
 		ruleChain.AddFilter(fmt.Sprint(i), rule)
 	}
