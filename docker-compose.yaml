@@ -8,13 +8,21 @@ services:
     container_name: 'contagion-updater'
     environment:
       - QUEUE_ADDRESS=amqp://guest:guest@codes-queue:5672/
-    ports:
-      - "5006:5006"
+      - QUEUE_NAME=infected-codes
+      - MONGODB_URI=mongodb://ct-contagion-updater-db:27017/ct-contagion-updater-db
+      - MONGODB_DB_NAME=ct-contagion-updater-db
+    restart: on-failure
     depends_on:
       - codes-queue
+      - ct-contagion-updater-db
     networks:
       - queue-network
-  
+
+  ct-contagion-updater-db:
+    image: mongo:3.6.4
+    networks:
+      - queue-network
+
   codes-queue:
     image: rabbitmq:3-management-alpine
     container_name: 'codes-queue'
@@ -22,12 +30,16 @@ services:
         - 5672:5672
         - 15672:15672
     volumes:
-        - ./rabbitmq/data/:/var/lib/rabbitmq/
-        - ./rabbitmq/log/:/var/log/rabbitmq
+        - ./rabbitmq-info/data/:/var/lib/rabbitmq/
+        - ./rabbitmq-info/log/:/var/log/rabbitmq
     networks:
         - queue-network
 
 networks:
   queue-network:
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.25.125.0/24
 
   

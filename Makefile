@@ -18,7 +18,7 @@ format: ## Fix format code style
 
 .PHONY: build
 build: deps
-	GOOS=linux go build $(GOFLAGS) -ldflags '$(LDFLAGS)' -o $(BINDIR)/$(BINNAME) .
+	GOOS=linux go build $(GOFLAGS) -ldflags '$(LDFLAGS)' -o $(BINDIR)/$(BINNAME) ./cmd
 
 .PHONY: clean
 clean: ## Clean workspace

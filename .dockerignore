@@ -1,0 +1,7 @@
+bin/
+tmp/
+vendor/
+go.sum
+
+.git/
+rabbitmq-info/
