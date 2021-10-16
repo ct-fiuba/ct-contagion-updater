@@ -17,7 +17,7 @@ const (
 )
 
 type Visit struct {
-	ScanCode           primitive.ObjectID `bson:"scanCode"`
+	SpaceId           primitive.ObjectID `bson:"spaceId"`
 	UserGeneratedCode  string             `bson:"userGeneratedCode"`
 	EntranceTimestamp  primitive.DateTime `bson:"entranceTimestamp"`
 	ExitTimestamp      primitive.DateTime `bson:"exitTimestamp"`
@@ -75,7 +75,7 @@ func (visits *VisitsCollection) FindInSpace(spaceId string) ([]Visit, error) {
 	cursor, err := visits.Collection.Find(
 		visits.Database.Context,
 		bson.M{
-			"scanCode":          objectId,
+			"spaceId":          objectId,
 			"entranceTimestamp": bson.M{"$gte": primitive.NewDateTimeFromTime(time.Now().AddDate(0, 0, -TIME_WINDOW_DAYS))},
 		},
 	)

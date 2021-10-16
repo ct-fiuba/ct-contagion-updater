@@ -112,7 +112,7 @@ func (checker *SimpleRuleChecker) Process(compromised, infected *visits.Visit, s
 		fmt.Printf("[Rule #%d] Match found between visits %d and %d\n", checker.rule.Index, compromised.UserGeneratedCode, infected.UserGeneratedCode)
 		if checker.resultExit != nil {
 			res := api.Result{CompromisedCode: compromisedCodes.CompromisedCode{
-				ScanCode:          compromised.ScanCode,
+				SpaceId:          compromised.SpaceId,
 				UserGeneratedCode: compromised.UserGeneratedCode,
 				DateDetected:      primitive.NewDateTimeFromTime(time.Now()),
 				Risk:              api.RiskStringsToSeverity[checker.rule.ContagionRisk],
