@@ -16,7 +16,7 @@ type Space struct {
 	M2                     int                `bson:"m2"`
 	EstimatedVisitDuration int                `bson:"estimatedVisitDuration,omitempty"`
 	HasExit                bool               `bson:"hasExit"`
-	OpenPlace              bool               `bson:"openPlace"`
+	OpenSpace              bool               `bson:"openSpace"`
 	EstablishmentId        primitive.ObjectID `bson:"establishmentId"`
 	N95Mandatory           bool               `bson:"n95Mandatory"`
 	Enabled                bool               `bson:"enabled"`

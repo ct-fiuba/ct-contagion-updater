@@ -76,10 +76,9 @@ func (checker *SimpleRuleChecker) Process(compromised, infected *visits.Visit, s
 		}
 	}
 
-	// TODO: Different types, how to compare?
-	// if checker.rule.SpaceValue != "" {
-	// 	spaceCheck = s.OpenPlace == checker.rule.SpaceValue;
-	// }
+	if checker.rule.OpenSpace {
+		spaceCheck = s.OpenSpace == checker.rule.OpenSpace
+	}
 
 	if checker.rule.N95Mandatory {
 		n95MandatoryCheck = s.N95Mandatory == checker.rule.N95Mandatory

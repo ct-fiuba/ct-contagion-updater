@@ -18,7 +18,7 @@ type Rule struct {
 	DurationValue            int    `bson:"durationValue,omitempty"`
 	M2Cmp                    string `bson:"m2Cmp,omitempty"`
 	M2Value                  int    `bson:"m2Value,omitempty"`
-	SpaceValue               string `bson:"spaceValue,omitempty"`
+	OpenSpace               bool 	`bson:"openSpace,omitempty"`
 	N95Mandatory             bool   `bson:"n95Mandatory,omitempty"`
 	Vaccinated               int    `bson:"vaccinated,omitempty"`
 	VaccinatedDaysAgoMin     int    `bson:"vaccinatedDaysAgoMin,omitempty"`
