@@ -23,8 +23,8 @@ type Rule struct {
 	Vaccinated               int    `bson:"vaccinated,omitempty"`
 	VaccinatedDaysAgoMin     int    `bson:"vaccinatedDaysAgoMin,omitempty"`
 	VaccineReceived          string `bson:"vaccineReceived,omitempty"`
-	CovidRecovered           bool   `bson:"covidRecovered,omitempty"`
-	CovidRecoveredDaysAgoMax int    `bson:"covidRecoveredDaysAgoMax,omitempty"`
+	IllnessRecovered           bool   `bson:"illnessRecovered,omitempty"`
+	IllnessRecoveredDaysAgoMax int    `bson:"illnessRecoveredDaysAgoMax,omitempty"`
 }
 
 type RulesCollection struct {

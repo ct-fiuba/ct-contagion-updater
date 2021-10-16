@@ -24,8 +24,8 @@ type Visit struct {
 	Vaccinated         int                `bson:"vaccinated"`
 	VaccineReceived    string             `bson:"vaccineReceived,omitempty"`
 	VaccinatedDate     primitive.DateTime `bson:"vaccinatedDate,omitempty"`
-	CovidRecovered     bool               `bson:"covidRecovered"`
-	CovidRecoveredDate primitive.DateTime `bson:"covidRecoveredDate,omitempty"`
+	IllnessRecovered     bool               `bson:"illnessRecovered"`
+	IllnessRecoveredDate primitive.DateTime `bson:"illnessRecoveredDate,omitempty"`
 	DetectedTimestamp  primitive.DateTime `bson:"detectedTimestamp,omitempty"`
 }
 
