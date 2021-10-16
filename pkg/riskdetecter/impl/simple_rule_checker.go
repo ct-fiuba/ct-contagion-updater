@@ -115,7 +115,7 @@ func (checker *SimpleRuleChecker) Process(compromised, infected *visits.Visit, s
 				SpaceId:          compromised.SpaceId,
 				UserGeneratedCode: compromised.UserGeneratedCode,
 				DateDetected:      primitive.NewDateTimeFromTime(time.Now()),
-				Risk:              api.RiskStringsToSeverity[checker.rule.ContagionRisk],
+				Risk:              checker.rule.ContagionRisk,
 			}, Error: nil}
 			checker.resultExit.Push(res)
 		}

@@ -13,7 +13,7 @@ import (
 
 type Rule struct {
 	Index                    int    `bson:"index"`
-	ContagionRisk            string `bson:"contagionRisk"`
+	ContagionRisk            int    `bson:"contagionRisk"`
 	DurationCmp              string `bson:"durationCmp,omitempty"`
 	DurationValue            int    `bson:"durationValue,omitempty"`
 	M2Cmp                    string `bson:"m2Cmp,omitempty"`
