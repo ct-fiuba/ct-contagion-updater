@@ -12,17 +12,17 @@ import (
 )
 
 type Rule struct {
-	Index                    int    `bson:"index"`
-	ContagionRisk            int    `bson:"contagionRisk"`
-	DurationCmp              string `bson:"durationCmp,omitempty"`
-	DurationValue            int    `bson:"durationValue,omitempty"`
-	M2Cmp                    string `bson:"m2Cmp,omitempty"`
-	M2Value                  int    `bson:"m2Value,omitempty"`
-	OpenSpace               bool 	`bson:"openSpace,omitempty"`
-	N95Mandatory             bool   `bson:"n95Mandatory,omitempty"`
-	Vaccinated               int    `bson:"vaccinated,omitempty"`
-	VaccinatedDaysAgoMin     int    `bson:"vaccinatedDaysAgoMin,omitempty"`
-	VaccineReceived          string `bson:"vaccineReceived,omitempty"`
+	Index                      int    `bson:"index"`
+	ContagionRisk              int    `bson:"contagionRisk"`
+	DurationCmp                string `bson:"durationCmp,omitempty"`
+	DurationValue              int    `bson:"durationValue,omitempty"`
+	M2Cmp                      string `bson:"m2Cmp,omitempty"`
+	M2Value                    int    `bson:"m2Value,omitempty"`
+	OpenSpace                  bool   `bson:"openSpace,omitempty"`
+	N95Mandatory               bool   `bson:"n95Mandatory,omitempty"`
+	Vaccinated                 int    `bson:"vaccinated,omitempty"`
+	VaccinatedDaysAgoMin       int    `bson:"vaccinatedDaysAgoMin,omitempty"`
+	VaccineReceived            string `bson:"vaccineReceived,omitempty"`
 	IllnessRecovered           bool   `bson:"illnessRecovered,omitempty"`
 	IllnessRecoveredDaysAgoMax int    `bson:"illnessRecoveredDaysAgoMax,omitempty"`
 }

@@ -10,7 +10,7 @@ import (
 )
 
 type CompromisedCode struct {
-	SpaceId          primitive.ObjectID `bson:"spaceId"`
+	SpaceId           primitive.ObjectID `bson:"spaceId"`
 	UserGeneratedCode string             `bson:"userGeneratedCode"`
 	DateDetected      primitive.DateTime `bson:"dateDetected"`
 	Risk              int                `bson:"risk"`
