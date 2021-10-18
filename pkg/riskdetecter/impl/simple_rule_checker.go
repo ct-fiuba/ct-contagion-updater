@@ -44,8 +44,8 @@ func (checker *SimpleRuleChecker) Process(compromised, infected *visits.Visit, s
 	vaccinatedCheck := true
 	vaccineReceivedCheck := true
 	vaccinatedDaysCheck := true
-	covidRecoveredCheck := true
-	covidRecoveredDaysCheck := true
+	illnessRecoveredCheck := true
+	illnessRecoveredDaysCheck := true
 
 	compromisedEntranceTime := compromised.EntranceTimestamp.Time()
 	infectedEntranceTime := infected.EntranceTimestamp.Time()
@@ -76,10 +76,9 @@ func (checker *SimpleRuleChecker) Process(compromised, infected *visits.Visit, s
 		}
 	}
 
-	// TODO: Different types, how to compare?
-	// if checker.rule.SpaceValue != "" {
-	// 	spaceCheck = s.OpenPlace == checker.rule.SpaceValue;
-	// }
+	if checker.rule.OpenSpace {
+		spaceCheck = s.OpenSpace == checker.rule.OpenSpace
+	}
 
 	if checker.rule.N95Mandatory {
 		n95MandatoryCheck = s.N95Mandatory == checker.rule.N95Mandatory
@@ -98,25 +97,25 @@ func (checker *SimpleRuleChecker) Process(compromised, infected *visits.Visit, s
 		vaccinatedDaysCheck = int(time.Since(vaccineDate).Hours())/24 >= checker.rule.VaccinatedDaysAgoMin
 	}
 
-	if checker.rule.CovidRecovered {
-		covidRecoveredCheck = compromised.CovidRecovered == checker.rule.CovidRecovered
+	if checker.rule.IllnessRecovered {
+		illnessRecoveredCheck = compromised.IllnessRecovered == checker.rule.IllnessRecovered
 	}
 
-	if checker.rule.CovidRecoveredDaysAgoMax != 0 {
-		recoveredDate := compromised.CovidRecoveredDate.Time()
-		covidRecoveredDaysCheck = int(time.Since(recoveredDate).Hours())/24 <= checker.rule.CovidRecoveredDaysAgoMax
+	if checker.rule.IllnessRecoveredDaysAgoMax != 0 {
+		recoveredDate := compromised.IllnessRecoveredDate.Time()
+		illnessRecoveredDaysCheck = int(time.Since(recoveredDate).Hours())/24 <= checker.rule.IllnessRecoveredDaysAgoMax
 	}
 
 	// -- Decision
 	if durationCheck && m2Check && spaceCheck && n95MandatoryCheck && vaccinatedCheck &&
-		vaccineReceivedCheck && vaccinatedDaysCheck && covidRecoveredCheck && covidRecoveredDaysCheck {
+		vaccineReceivedCheck && vaccinatedDaysCheck && illnessRecoveredCheck && illnessRecoveredDaysCheck {
 		fmt.Printf("[Rule #%d] Match found between visits %d and %d\n", checker.rule.Index, compromised.UserGeneratedCode, infected.UserGeneratedCode)
 		if checker.resultExit != nil {
 			res := api.Result{CompromisedCode: compromisedCodes.CompromisedCode{
-				ScanCode:          compromised.ScanCode,
+				SpaceId:           compromised.SpaceId,
 				UserGeneratedCode: compromised.UserGeneratedCode,
 				DateDetected:      primitive.NewDateTimeFromTime(time.Now()),
-				Risk:              api.RiskStringsToSeverity[checker.rule.ContagionRisk],
+				Risk:              checker.rule.ContagionRisk,
 			}, Error: nil}
 			checker.resultExit.Push(res)
 		}
