@@ -4,6 +4,7 @@ services:
   contagion-updater:
     build:
       context: .
+      dockerfile: Dockerfile.worker
     image: ct-contagion-updater:latest
     container_name: 'contagion-updater'
     environment:
