@@ -54,6 +54,13 @@ func (checker *SimpleRuleChecker) Process(compromised, infected *visits.Visit, s
 	compromisedExitTime := compromisedEntranceTime.Add(time.Minute * time.Duration(s.EstimatedVisitDuration))
 	infectedExitTime := infectedEntranceTime.Add(time.Minute * time.Duration(s.EstimatedVisitDuration))
 
+	if compromised.ExitTimestamp != nil {
+		compromisedExitTime := compromised.ExitTimestamp.Time()
+	}
+	if infected.ExitTimestamp != nil {
+		infectedExitTime := infected.ExitTimestamp.Time()
+	}
+
 	fmt.Printf("[Rule #%d] Compromised time interval = [ %s ; %s ] \n", checker.rule.Index, compromisedEntranceTime.String(), compromisedExitTime.String())
 	fmt.Printf("[Rule #%d] Infected time interval = [ %s ; %s ] \n", checker.rule.Index, infectedEntranceTime.String(), infectedExitTime.String())
 
@@ -112,7 +119,7 @@ func (checker *SimpleRuleChecker) Process(compromised, infected *visits.Visit, s
 		fmt.Printf("[Rule #%d] Match found between visits %d and %d\n", checker.rule.Index, compromised.UserGeneratedCode, infected.UserGeneratedCode)
 		if checker.resultExit != nil {
 			res := api.Result{CompromisedCode: compromisedCodes.CompromisedCode{
-				SpaceId:           compromised.SpaceId,
+				SpaceId:          compromised.SpaceId,
 				UserGeneratedCode: compromised.UserGeneratedCode,
 				DateDetected:      primitive.NewDateTimeFromTime(time.Now()),
 				Risk:              checker.rule.ContagionRisk,
