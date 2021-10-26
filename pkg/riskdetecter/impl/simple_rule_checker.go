@@ -53,11 +53,11 @@ func (checker *SimpleRuleChecker) Process(compromised, infected *visits.Visit, s
 	compromisedExitTime := compromisedEntranceTime.Add(time.Minute * time.Duration(s.EstimatedVisitDuration))
 	infectedExitTime := infectedEntranceTime.Add(time.Minute * time.Duration(s.EstimatedVisitDuration))
 
-	if !compromised.ExitTimestamp.IsZero() {
-		compromisedExitTime := compromised.ExitTimestamp.Time()
+	if !compromised.ExitTimestamp.Time().IsZero() {
+		compromisedExitTime = compromised.ExitTimestamp.Time()
 	}
-	if !infected.ExitTimestamp.IsZero() {
-		infectedExitTime := infected.ExitTimestamp.Time()
+	if !infected.ExitTimestamp.Time().IsZero() {
+		infectedExitTime = infected.ExitTimestamp.Time()
 	}
 
 	fmt.Printf("[Rule #%d] Compromised time interval = [ %s ; %s ] \n", checker.rule.Index, compromisedEntranceTime.String(), compromisedExitTime.String())
