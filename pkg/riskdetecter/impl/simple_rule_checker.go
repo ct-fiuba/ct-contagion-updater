@@ -37,85 +37,75 @@ func (checker *SimpleRuleChecker) SetResultExit(rc api.ResultConnector) {
 }
 
 func (checker *SimpleRuleChecker) Process(compromised, infected *visits.Visit, s *spaces.Space) error {
-	durationCheck := true
-	m2Check := true
-	spaceCheck := true
-	n95MandatoryCheck := true
-	vaccinatedCheck := true
-	vaccineReceivedCheck := true
-	vaccinatedDaysCheck := true
-	illnessRecoveredCheck := true
-	illnessRecoveredDaysCheck := true
+	executedChecks := make(map[string]bool)
 
-	compromisedEntranceTime := compromised.EntranceTimestamp.Time()
-	infectedEntranceTime := infected.EntranceTimestamp.Time()
-
-	compromisedExitTime := compromisedEntranceTime.Add(time.Minute * time.Duration(s.EstimatedVisitDuration))
-	infectedExitTime := infectedEntranceTime.Add(time.Minute * time.Duration(s.EstimatedVisitDuration))
-
-	if !compromised.ExitTimestamp.Time().IsZero() {
-		compromisedExitTime = compromised.ExitTimestamp.Time()
-	}
-	if !infected.ExitTimestamp.Time().IsZero() {
-		infectedExitTime = infected.ExitTimestamp.Time()
-	}
-
-	fmt.Printf("[Rule #%d] Compromised time interval = [ %s ; %s ] \n", checker.rule.Index, compromisedEntranceTime.String(), compromisedExitTime.String())
-	fmt.Printf("[Rule #%d] Infected time interval = [ %s ; %s ] \n", checker.rule.Index, infectedEntranceTime.String(), infectedExitTime.String())
-
-	if checker.rule.DurationValue != 0 || !timeutils.IntervalsOverlap(compromisedEntranceTime, compromisedExitTime, infectedEntranceTime, infectedExitTime) {
+	if checker.rule.DurationValue != nil {
+		compromisedEntranceTime, compromisedExitTime := GetVisitInterval(compromised, s.EstimatedVisitDuration)
+		infectedEntranceTime, infectedExitTime := GetVisitInterval(infected, s.EstimatedVisitDuration)
 		startSharedTime := timeutils.Latest(compromisedEntranceTime, infectedEntranceTime)
 		endSharedTime := timeutils.Earliest(compromisedExitTime, infectedExitTime)
 		sharedTime := timeutils.AbsDateDiffInMinutes(startSharedTime, endSharedTime)
-		if checker.rule.DurationCmp == "<" {
-			durationCheck = int(sharedTime) <= checker.rule.DurationValue
+
+		durationCheck := false
+		if *checker.rule.DurationCmp == "<" {
+			durationCheck = int(sharedTime) <= *checker.rule.DurationValue
 		} else {
-			durationCheck = int(sharedTime) >= checker.rule.DurationValue
+			durationCheck = int(sharedTime) >= *checker.rule.DurationValue
 		}
+		executedChecks["durationCheck"] = durationCheck
 	}
 
-	if checker.rule.M2Value != 0 {
-		if checker.rule.M2Cmp == "<" {
-			m2Check = s.M2 <= checker.rule.M2Value
+	if checker.rule.M2Value != nil {
+		m2Check := false
+		if *checker.rule.M2Cmp == "<" {
+			m2Check = s.M2 <= *checker.rule.M2Value
 		} else {
-			m2Check = s.M2 >= checker.rule.M2Value
+			m2Check = s.M2 >= *checker.rule.M2Value
 		}
+		executedChecks["m2Check"] = m2Check
 	}
 
-	if checker.rule.OpenSpace {
-		spaceCheck = s.OpenSpace == checker.rule.OpenSpace
+	if checker.rule.OpenSpace != nil {
+		executedChecks["spaceCheck"] = s.OpenSpace == *checker.rule.OpenSpace
 	}
 
-	if checker.rule.N95Mandatory {
-		n95MandatoryCheck = s.N95Mandatory == checker.rule.N95Mandatory
+	if checker.rule.N95Mandatory != nil {
+		executedChecks["n95MandatoryCheck"] = s.N95Mandatory == *checker.rule.N95Mandatory
 	}
 
-	if checker.rule.Vaccinated != 0 {
-		vaccinatedCheck = compromised.Vaccinated == checker.rule.Vaccinated
+	if checker.rule.Vaccinated != nil && compromised.Vaccinated != nil {
+		executedChecks["vaccinatedCheck"] = *compromised.Vaccinated == *checker.rule.Vaccinated
 	}
 
-	if checker.rule.VaccineReceived != "" {
-		vaccineReceivedCheck = compromised.VaccineReceived == checker.rule.VaccineReceived
+	if checker.rule.VaccineReceived != nil && compromised.VaccineReceived != nil {
+		executedChecks["vaccineReceivedCheck"] = *compromised.VaccineReceived == *checker.rule.VaccineReceived
 	}
 
-	if checker.rule.VaccinatedDaysAgoMin != 0 {
-		vaccineDate := compromised.VaccinatedDate.Time()
-		vaccinatedDaysCheck = int(time.Since(vaccineDate).Hours())/24 >= checker.rule.VaccinatedDaysAgoMin
+	if checker.rule.VaccinatedDaysAgoMin != nil && compromised.VaccinatedDate != nil {
+		vaccineDate := (*compromised.VaccinatedDate).Time()
+		executedChecks["vaccinatedDaysCheck"] = int(time.Since(vaccineDate).Hours())/24 >= *checker.rule.VaccinatedDaysAgoMin
 	}
 
-	if checker.rule.IllnessRecovered {
-		illnessRecoveredCheck = compromised.IllnessRecovered == checker.rule.IllnessRecovered
+	if checker.rule.IllnessRecovered != nil && compromised.IllnessRecovered != nil {
+		executedChecks["illnessRecoveredCheck"] = *compromised.IllnessRecovered == *checker.rule.IllnessRecovered
 	}
 
-	if checker.rule.IllnessRecoveredDaysAgoMax != 0 {
-		recoveredDate := compromised.IllnessRecoveredDate.Time()
-		illnessRecoveredDaysCheck = int(time.Since(recoveredDate).Hours())/24 <= checker.rule.IllnessRecoveredDaysAgoMax
+	if checker.rule.IllnessRecoveredDaysAgoMax != nil && compromised.IllnessRecoveredDate != nil {
+		recoveredDate := (*compromised.IllnessRecoveredDate).Time()
+		executedChecks["illnessRecoveredDaysCheck"] = int(time.Since(recoveredDate).Hours())/24 <= *checker.rule.IllnessRecoveredDaysAgoMax
 	}
 
 	// -- Decision
-	if durationCheck && m2Check && spaceCheck && n95MandatoryCheck && vaccinatedCheck &&
-		vaccineReceivedCheck && vaccinatedDaysCheck && illnessRecoveredCheck && illnessRecoveredDaysCheck {
-		fmt.Printf("[Rule #%d] Match found between visits %d and %d\n", checker.rule.Index, compromised.UserGeneratedCode, infected.UserGeneratedCode)
+	failedChecks := 0
+	for check, result := range executedChecks {
+		fmt.Printf("[Rule #%d]   - %s --> %t\n", checker.rule.Index, check, result)
+		if result {
+			failedChecks = failedChecks + 1
+		}
+	}
+
+	if failedChecks == len(executedChecks) && failedChecks != 0 {
+		fmt.Printf("[Rule #%d] Match found between visits %s and %s\n", checker.rule.Index, compromised.UserGeneratedCode, infected.UserGeneratedCode)
 		if checker.resultExit != nil {
 			res := api.Result{CompromisedCode: compromisedCodes.CompromisedCode{
 				SpaceId:           compromised.SpaceId,
