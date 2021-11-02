@@ -14,7 +14,7 @@ import (
 type Space struct {
 	Name                   string             `bson:"name"`
 	M2                     int                `bson:"m2"`
-	EstimatedVisitDuration *int               `bson:"estimatedVisitDuration,omitempty"`
+	EstimatedVisitDuration int                `bson:"estimatedVisitDuration"`
 	HasExit                bool               `bson:"hasExit"`
 	OpenSpace              bool               `bson:"openSpace"`
 	EstablishmentId        primitive.ObjectID `bson:"establishmentId"`
