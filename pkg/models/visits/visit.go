@@ -17,16 +17,16 @@ const (
 )
 
 type Visit struct {
-	SpaceId              primitive.ObjectID `bson:"spaceId"`
-	UserGeneratedCode    string             `bson:"userGeneratedCode"`
-	EntranceTimestamp    primitive.DateTime `bson:"entranceTimestamp"`
-	ExitTimestamp        primitive.DateTime `bson:"exitTimestamp"`
-	Vaccinated           int                `bson:"vaccinated"`
-	VaccineReceived      string             `bson:"vaccineReceived,omitempty"`
-	VaccinatedDate       primitive.DateTime `bson:"vaccinatedDate,omitempty"`
-	IllnessRecovered     bool               `bson:"illnessRecovered"`
-	IllnessRecoveredDate primitive.DateTime `bson:"illnessRecoveredDate,omitempty"`
-	DetectedTimestamp    primitive.DateTime `bson:"detectedTimestamp,omitempty"`
+	SpaceId              primitive.ObjectID  `bson:"spaceId"`
+	UserGeneratedCode    string              `bson:"userGeneratedCode"`
+	EntranceTimestamp    primitive.DateTime  `bson:"entranceTimestamp"`
+	ExitTimestamp        *primitive.DateTime `bson:"exitTimestamp"`
+	Vaccinated           *int                `bson:"vaccinated"`
+	VaccineReceived      *string             `bson:"vaccineReceived,omitempty"`
+	VaccinatedDate       *primitive.DateTime `bson:"vaccinatedDate,omitempty"`
+	IllnessRecovered     *bool               `bson:"illnessRecovered"`
+	IllnessRecoveredDate *primitive.DateTime `bson:"illnessRecoveredDate,omitempty"`
+	DetectedTimestamp    *primitive.DateTime `bson:"detectedTimestamp,omitempty"`
 }
 
 type VisitsCollection struct {
