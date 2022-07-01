@@ -28,6 +28,10 @@ func NewSimpleRuleChain(compromisedCodesCollection *compromisedCodes.Compromised
 	return rulechain
 }
 
+func (rulechain *SimpleRuleChain) IsEmpty() bool {
+	return len(rulechain.filters) == 0
+}
+
 func (rulechain *SimpleRuleChain) AddFilter(id string, rule rules.Rule) bool {
 	filter := NewSimpleRuleChecker(rule)
 	if len(rulechain.filters) > 0 {
