@@ -7,6 +7,7 @@ import (
 )
 
 type RuleChain interface {
+	IsEmpty() bool
 	AddFilter(id string, rule rules.Rule) bool
 	RemoveFilter(id string) bool
 	Process(v1, infected *visits.Visit, s *spaces.Space) error

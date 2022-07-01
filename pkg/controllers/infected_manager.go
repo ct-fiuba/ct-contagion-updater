@@ -47,6 +47,11 @@ func (self *InfectedManager) ProcessBatch(codesBySpace *concurrency.SafeStringLi
 		ruleChain.AddFilter(fmt.Sprint(i), rule)
 	}
 
+	if ruleChain.IsEmpty() {
+		fmt.Printf("[DEBUG] No rules to perform check. Skipping processing\n")
+		return nil
+	}
+
 	codesBySpaceBatch := codesBySpace.Clear()
 
 	for spaceId, codes := range codesBySpaceBatch {
